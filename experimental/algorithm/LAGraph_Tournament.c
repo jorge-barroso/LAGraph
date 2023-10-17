@@ -9,20 +9,35 @@
 
 #include "LG_internal.h"
 
-bool is_tournament(LAGraph_Graph G,
-                   char *msg) {
+int LAGraph_IsTournament(
+        // output
+        bool *is_tournament,
+
+        // input
+        LAGraph_Graph G,
+        char *msg) {
+    LG_CLEAR_MSG;
+
+    // Declare items
     GrB_Matrix A = G->A;
     GrB_Index nvals, nrows, ncols;
     GrB_Matrix U = NULL;
+
+    // Get matrix dimensions
     GRB_TRY(GrB_Matrix_nvals(&nvals, A));
     GRB_TRY(GrB_Matrix_nrows(&nrows, A));
     GRB_TRY(GrB_Matrix_ncols(&ncols, A));
+
+    // Find whether we can quickly assert that this is not a tournament graph
     if (nvals != nrows * floor((ncols - 1) / 2.0) || G->nself_edges) {
-        return false;
+        (*is_tournament) = false;
+        return (GrB_SUCCESS) ;
     }
 
     GRB_TRY (GrB_select(U, NULL, NULL, GrB_TRIU, A, (int64_t) 1, NULL));
     GRB_TRY(GrB_Matrix_nvals(&nvals, U));
+    (*is_tournament) = nvals == 0;
 
-    return nvals == 0;
+    LG_FREE_WORK;
+    return (GrB_SUCCESS) ;
 }
