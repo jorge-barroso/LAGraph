@@ -20,7 +20,7 @@ typedef struct {
 
 const matrix_info files[] =
         {
-                {true, "square_tournament.mtx"},
+                {true,  "square_tournament.mtx"},
                 {false, "square_diagonal_vals.mtx"}, // when i == j (diagonal), cell(i, j) should be 0
         };
 
@@ -29,7 +29,6 @@ void test_IsTournament(void) {
     //--------------------------------------------------------------------------
     // start LAGraph
     //--------------------------------------------------------------------------
-
     LAGraph_Init(msg);
 
     for (int i = 0; i < sizeof(files) / sizeof(files[0]); ++i) {
