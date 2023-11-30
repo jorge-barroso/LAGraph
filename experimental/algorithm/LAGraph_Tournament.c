@@ -30,7 +30,7 @@ int LAGraph_IsTournament(
     GRB_TRY(GrB_Matrix_ncols(&ncols, G->A));
 
 
-//        LAGRAPH_TRY(LAGraph_Cached_NSelfEdges(G, msg));
+        LAGRAPH_TRY(LAGraph_Cached_NSelfEdges(G, msg));
     GRB_TRY(GrB_Matrix_new(&diag, GrB_FP64, nrows, ncols));
     GRB_TRY(GrB_select(diag, NULL, NULL, GrB_DIAG, G->A, 0, GrB_DESC_S));
     GRB_TRY(GrB_Matrix_nvals(&G->nself_edges, diag));
