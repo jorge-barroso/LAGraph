@@ -29,12 +29,10 @@ int LAGraph_IsTournament(
     GRB_TRY(GrB_Matrix_nrows(&nrows, G->A));
     GRB_TRY(GrB_Matrix_ncols(&ncols, G->A));
 
-    // Transpose and cache
-    GRB_TRY(LAGraph_Cached_AT(G, msg));
 
 //        LAGRAPH_TRY(LAGraph_Cached_NSelfEdges(G, msg));
     GRB_TRY(GrB_Matrix_new(&diag, GrB_FP64, nrows, ncols));
-    GRB_TRY(GrB_select(diag, G->A, NULL, GrB_DIAG, G->AT, 0, GrB_DESC_S));
+    GRB_TRY(GrB_select(diag, NULL, NULL, GrB_DIAG, G->A, 0, GrB_DESC_S));
     GRB_TRY(GrB_Matrix_nvals(&G->nself_edges, diag));
 
     // Find whether we can quickly assert that this is not a is_tournament graph
@@ -42,6 +40,9 @@ int LAGraph_IsTournament(
         (*is_tournament) = false;
         return (GrB_SUCCESS);
     }
+
+    // Transpose and cache
+    GRB_TRY(LAGraph_Cached_AT(G, msg));
 
     GRB_TRY(GrB_Matrix_new(&L, GrB_FP64, nrows, ncols));
     GRB_TRY(GrB_select(L, G->A, NULL, GrB_TRIL, G->AT, -1, GrB_DESC_S));
