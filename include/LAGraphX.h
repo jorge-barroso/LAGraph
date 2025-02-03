@@ -879,6 +879,22 @@ int LAGraph_SquareClustering
     char *msg
 ) ;
 
+
+//------------------------------------------------------------------------------
+// Isomorphism
+//------------------------------------------------------------------------------
+LAGRAPH_PUBLIC
+int LAGraph_IsIsomorphic
+(
+        // output
+        bool *is_isomorphic,
+        // inputs
+        LAGraph_Graph G1,
+        LAGraph_Graph G2,
+        enum Level level,
+        char *msg
+) ;
+
 //------------------------------------------------------------------------------
 // a simple example of an algorithm
 //------------------------------------------------------------------------------
