@@ -110,7 +110,7 @@ int compare_sizes(bool *is_isomorphic,
     // We only need rows because Ajd Matrices are squared by definition
     GRB_TRY(GrB_Matrix_nrows(size1, G1->A));
     GRB_TRY(GrB_Matrix_nrows(size2, G2->A));
-    if (size1 != size2) {
+    if (*size1 != *size2) {
         (*is_isomorphic) = false;
     }
     return GrB_SUCCESS;
@@ -139,7 +139,7 @@ int compute_degrees(bool *is_isomorphic,
 
     GrB_Vector_nvals(nvals1, degrees1);
     GrB_Vector_nvals(nvals2, degrees2);
-    if(nvals1 != nvals2) {
+    if(*nvals1 != *nvals2) {
         (*is_isomorphic) = false;
     }
 
@@ -189,7 +189,7 @@ int compute_triangles(bool *is_isomorphic,
     GRB_TRY(GrB_Matrix_new(&C, GrB_INT64, n, n));
     GRB_TRY(GrB_Matrix_new(&D, GrB_INT64, n, n));
 
-    // Use plus_pair semiring like in Python version
+    // Use plus_pair semiring like in the Python version
     GrB_Semiring semiring = GxB_PLUS_PAIR_INT64;
 
     // C = (L * L') .* L
@@ -198,7 +198,7 @@ int compute_triangles(bool *is_isomorphic,
     // D = (U * L') .* U
     GRB_TRY(GrB_mxm(D, U, NULL, semiring, U, L, GrB_DESC_ST0));
 
-    // Add up the three components like in Python:
+    // Add up the three components (like in the Python version again):
     // C.reduce_rowwise + C.reduce_columnwise + D.reduce_rowwise
      GRB_TRY(GrB_reduce(triangles, NULL, GrB_PLUS_MONOID_INT64, C, GrB_DESC_T0));  // rowwise C
      GRB_TRY(GrB_reduce(temp, NULL, GrB_PLUS_MONOID_INT64, C, GrB_DESC_T1));        // columnwise C
@@ -228,8 +228,8 @@ int compare_nvals(bool *is_isomorphic,
                   GrB_Index size2,
                   char *msg) {
     // First check if triangle counts match
-    if (triangles_nvals1 != triangles_nvals2) {
-        *is_isomorphic = false;
+    if (*triangles_nvals1 != *triangles_nvals2) {
+        (*is_isomorphic) = false;
         return GrB_SUCCESS;
     }
 
@@ -284,20 +284,20 @@ int do_fastest(bool *is_isomorphic,
                  const LAGraph_Graph G1,
                  const LAGraph_Graph G2,
                  char *msg) {
+    // Check Size of the Graphs
     GrB_Index size1, size2;
     GRB_TRY(compare_sizes(is_isomorphic, G1, G2, &size1, &size2, msg));
     if(*is_isomorphic == false) {
       return GrB_SUCCESS;
     }
 
+    // Compute and Compare Degrees
     GrB_Vector degrees1, degrees2;
     GrB_Index nvals1, nvals2;
     GRB_TRY(compute_degrees(is_isomorphic, G1, G2, degrees1, degrees2, &nvals1, &nvals2, msg));
     if(*is_isomorphic == false) {
       return GrB_SUCCESS;
     }
-
-    // Compare the degrees
     int64_t *values1 = malloc(nvals1 * sizeof(int64_t));
     int64_t *values2 = malloc(nvals2 * sizeof(int64_t));
     allocate_and_extract_tuples(values1, values2, nvals1, nvals2, degrees1, degrees2, msg);
@@ -312,12 +312,14 @@ int do_fast(bool *is_isomorphic,
                  const LAGraph_Graph G1,
                  const LAGraph_Graph G2,
                  char *msg) {
+    // Check Size of the Graphs
     GrB_Index size1, size2;
     GRB_TRY(compare_sizes(is_isomorphic, G1, G2, &size1, &size2, msg));
     if(*is_isomorphic == false) {
         return GrB_SUCCESS;
     }
 
+    // Compute Degrees
     GrB_Vector degrees1, degrees2;
     GrB_Index degrees_nvals1, degrees_nvals2;
     GRB_TRY(compute_degrees(is_isomorphic, G1, G2, degrees1, degrees2, &degrees_nvals1, &degrees_nvals2, msg));
@@ -325,6 +327,7 @@ int do_fast(bool *is_isomorphic,
         return GrB_SUCCESS;
     }
 
+    // Compute Triangles
     GrB_Vector triangles1 = malloc(sizeof(GrB_Vector)), triangles2 = malloc(sizeof(GrB_Vector));
     GrB_Index triangles_nvals1, triangles_nvals2;
     GRB_TRY(compute_triangles(is_isomorphic, G1, triangles1, &triangles_nvals1, msg));
@@ -333,5 +336,6 @@ int do_fast(bool *is_isomorphic,
         return GrB_SUCCESS;
     }
 
+    // Compare Degrees and Triangles
     GRB_TRY(compare_nvals(is_isomorphic, triangles1, triangles2, &triangles_nvals1, &triangles_nvals2, &degrees_nvals1, &degrees_nvals2, size1, size2, msg));
 }
